@@ -8,12 +8,12 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Disciple_Tools_Echo_API {
 
-    public static $SCHEDULE_CRON_EVENT_HOOK = 'dt_echo_sync';
+    public static $schedule_cron_event_hook = 'dt_echo_sync';
 
     public static function schedule_cron_event() {
         if ( self::has_api_assets() ) {
-            if ( ! wp_next_scheduled( self::$SCHEDULE_CRON_EVENT_HOOK ) ) {
-                wp_schedule_event( time(), '5min', self::$SCHEDULE_CRON_EVENT_HOOK );
+            if ( ! wp_next_scheduled( self::$schedule_cron_event_hook ) ) {
+                wp_schedule_event( time(), '5min', self::$schedule_cron_event_hook );
             }
         }
     }

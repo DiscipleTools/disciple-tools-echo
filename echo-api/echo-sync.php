@@ -8,7 +8,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Core synchronisation logic.
  */
 
-add_action( Disciple_Tools_Echo_API::$SCHEDULE_CRON_EVENT_HOOK, 'dt_echo_sync_run' );
+add_action( Disciple_Tools_Echo_API::$schedule_cron_event_hook, 'dt_echo_sync_run' );
 function dt_echo_sync_run() {
 
     // DT <- Echo Sync
