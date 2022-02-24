@@ -7,6 +7,17 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Class Disciple_Tools_Echo_API
  */
 class Disciple_Tools_Echo_API {
+
+    public static $SCHEDULE_CRON_EVENT_HOOK = 'dt_echo_sync';
+
+    public static function schedule_cron_event() {
+        if ( self::has_api_assets() ) {
+            if ( ! wp_next_scheduled( self::$SCHEDULE_CRON_EVENT_HOOK ) ) {
+                wp_schedule_event( time(), '5min', self::$SCHEDULE_CRON_EVENT_HOOK );
+            }
+        }
+    }
+
     private static function has_api_assets(): bool {
         return self::has_api_token() && self::has_api_host();
     }
