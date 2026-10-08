@@ -38,4 +38,3 @@ class Disciple_Tools_Echo_Site_Links {
     }
 }
 Disciple_Tools_Echo_Site_Links::instance();
-

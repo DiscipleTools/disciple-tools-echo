@@ -16,7 +16,6 @@ function dt_echo_sync_run() {
 
     // Age Stale Logs
     dt_echo_logging_aged();
-
 }
 
 function sync_echo_to_dt() {
@@ -111,7 +110,7 @@ function dt_echo_logging_aged() {
         $cut_off_point_idx = 0;
 
         $count = count( $logs );
-        for ( $x = 0; $x < $count; $x ++ ) {
+        for ( $x = 0; $x < $count; $x++ ) {
 
             // Stale logs will typically be found at the start! Therefore, capture transition point!
             if ( $logs[ $x ]->timestamp > $cut_off_point_ts ) {
@@ -478,5 +477,3 @@ function dt_record_already_contains_messages( $dt_record, $echo_convo_msgs ): bo
 
     return false;
 }
-
-
