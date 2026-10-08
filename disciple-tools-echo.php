@@ -56,7 +56,6 @@ function disciple_tools_echo() {
     }
 
     return Disciple_Tools_Echo::instance();
-
 }
 
 add_action( 'after_setup_theme', 'disciple_tools_echo', 20 );
@@ -108,7 +107,6 @@ class Disciple_Tools_Echo {
         require_once( 'echo-api/echo-api.php' );
         require_once( 'echo-api/echo-sync.php' );
         require_once( 'echo-api/echo-push-dt-updates.php' );
-
     }
 
 
@@ -260,7 +258,7 @@ if ( ! function_exists( "dt_hook_ajax_notice_handler" ) ) {
  * @see https://github.com/DiscipleTools/disciple-tools-version-control/wiki/How-to-Update-the-Starter-Plugin
  */
 add_action( 'plugins_loaded', function () {
-    if ( is_admin() && !( is_multisite() && class_exists( "DT_Multisite" ) ) || wp_doing_cron() ){
+    if ( ( is_admin() && !( is_multisite() && class_exists( "DT_Multisite" ) ) ) || wp_doing_cron() ){
         // Check for plugin updates
         if ( ! class_exists( 'Puc_v4_Factory' ) ) {
             if ( file_exists( get_template_directory() . '/dt-core/libraries/plugin-update-checker/plugin-update-checker.php' ) ) {
