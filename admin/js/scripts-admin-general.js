@@ -62,7 +62,9 @@ jQuery(function ($) {
     let supported_echo_convo_referrers_table_section = $('#echo_main_col_supported_echo_convo_referrers_table_section');
     let supported_dt_seeker_path_options_table_section = $('#echo_main_col_supported_dt_seeker_path_options_table_section');
 
-    if (!$('#echo_main_col_connect_echo_api_token').val().trim()) {
+    // The saved token is never printed into the page, so also check the saved-token flag.
+    let api_token_ele = $('#echo_main_col_connect_echo_api_token');
+    if (!api_token_ele.val().trim() && !api_token_ele.data('token-saved')) {
       available_echo_convo_options_table_section.fadeOut('fast');
       supported_echo_convo_options_table_section.fadeOut('fast');
       available_echo_convo_referrers_table_section.fadeOut('fast');
@@ -202,34 +204,27 @@ jQuery(function ($) {
 
   function dt_option_table_append(selected_option_id, selected_option_name, dt_option_table, dt_option_form, dt_option_hidden) {
 
-    let html = '<tr>';
-    html += '<input type="hidden" id="echo_main_col_supported_dt_option_table_hidden" value="' + dt_option_table + '" />';
-    html += '<input type="hidden" id="echo_main_col_supported_dt_option_form_hidden" value="' + dt_option_form + '" />';
-    html += '<input type="hidden" id="echo_main_col_supported_dt_option_values_hidden" value="' + dt_option_hidden + '" />';
-    html += '<input type="hidden" id="echo_main_col_supported_dt_option_id_hidden" value="' + selected_option_id + '" />';
-    html += '<input type="hidden" id="echo_main_col_supported_dt_option_name_hidden" value="' + selected_option_name + '" />';
-    html += '<td style="vertical-align: middle; text-align: center;">';
-    html += selected_option_name;
-    html += '</td>';
-    html += '<td style="vertical-align: middle; text-align: center;">';
-    html += '<select style="max-width: 300px;" id="echo_main_col_supported_dt_echo_option_select">';
+    // Build the row with DOM methods so option labels are treated as text
+    let tr = $('<tr>');
+    tr.append($('<input>', {type: 'hidden', id: 'echo_main_col_supported_dt_option_table_hidden', value: dt_option_table}));
+    tr.append($('<input>', {type: 'hidden', id: 'echo_main_col_supported_dt_option_form_hidden', value: dt_option_form}));
+    tr.append($('<input>', {type: 'hidden', id: 'echo_main_col_supported_dt_option_values_hidden', value: dt_option_hidden}));
+    tr.append($('<input>', {type: 'hidden', id: 'echo_main_col_supported_dt_option_id_hidden', value: selected_option_id}));
+    tr.append($('<input>', {type: 'hidden', id: 'echo_main_col_supported_dt_option_name_hidden', value: selected_option_name}));
+    tr.append($('<td>', {style: 'vertical-align: middle; text-align: center;'}).text(selected_option_name));
 
+    let select = $('<select>', {style: 'max-width: 300px;', id: 'echo_main_col_supported_dt_echo_option_select'});
     let echo_convo_options = JSON.parse($('#echo_main_col_supported_dt_seeker_path_options_supported_echo_convo_options_hidden').val());
     if (echo_convo_options) {
       $.each(echo_convo_options, function (idx, option) {
-        html += '<option value="' + option['id'] + '">' + option['name'] + '</option>';
+        select.append($('<option>').val(option['id']).text(option['name']));
       });
     }
-
-    html += '</select>';
-    html += '</td>';
-    html += '<td>';
-    html += '<span style="float:right;"><a class="button float-right echo-main-col-supported-dt-seeker-path-options-table-row-remove-but">Remove</a></span>';
-    html += '</td>';
-    html += '</tr>';
+    tr.append($('<td>', {style: 'vertical-align: middle; text-align: center;'}).append(select));
+    tr.append($('<td>').html('<span style="float:right;"><a class="button float-right echo-main-col-supported-dt-seeker-path-options-table-row-remove-but">Remove</a></span>'));
 
     // Append row...!
-    $('#' + dt_option_table + ' > tbody:last-child').append(html);
+    $('#' + dt_option_table + ' > tbody:last-child').append(tr);
   }
 
   function dt_option_update(dt_option_table, dt_option_form, dt_option_hidden) {

@@ -38,6 +38,21 @@ class Disciple_Tools_Echo_API {
         return get_option( 'dt_echo_api_host' );
     }
 
+    public static function is_valid_api_host( $host ): bool {
+        // Only a public https host, optionally with a path; no credentials, port, query or fragment
+        $url   = 'https://' . $host;
+        $parts = wp_parse_url( $url );
+        if ( empty( $parts['host'] ) || isset( $parts['user'] ) || isset( $parts['pass'] ) || isset( $parts['port'] ) || isset( $parts['query'] ) || isset( $parts['fragment'] ) ) {
+            return false;
+        }
+        if ( ! wp_http_validate_url( $url ) ) {
+            return false;
+        }
+        $ip = gethostbyname( $parts['host'] );
+
+        return (bool) filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE );
+    }
+
     private static function get_api_headers(): array {
         return array(
             'Content-Type'  => 'application/json',
@@ -53,11 +68,12 @@ class Disciple_Tools_Echo_API {
         // Build dispositions api endpoint request
         $api_endpoint = 'https://' . self::get_api_host() . 'report/conversations/dispositions.json';
         $args         = array(
-            'headers' => self::get_api_headers()
+            'headers'     => self::get_api_headers(),
+            'redirection' => 0
         );
 
         // Ensure response is not an error before extracting option ids and labels
-        $response = wp_remote_get( $api_endpoint, $args );
+        $response = wp_safe_remote_get( $api_endpoint, $args );
         if ( ! is_wp_error( $response ) && ( $response['response']['code'] === 200 ) && isset( $response['body'] ) ) {
             $body = json_decode( $response['body'] );
             if ( isset( $body->labels ) ) {
@@ -65,8 +81,8 @@ class Disciple_Tools_Echo_API {
                 foreach ( $body->labels as $label ) {
                     if ( is_int( $label->id ) ) { // Int based ids seem to have valid option labels
                         $options[] = (object) [
-                            'id'   => $label->id,
-                            'name' => $label->name
+                            'id'   => $label->id ?? null,
+                            'name' => $label->name ?? null
                         ];
                     }
                 }
@@ -86,19 +102,20 @@ class Disciple_Tools_Echo_API {
         // Build referrers api endpoint request
         $api_endpoint = 'https://' . self::get_api_host() . 'report/referrers.json';
         $args         = array(
-            'headers' => self::get_api_headers()
+            'headers'     => self::get_api_headers(),
+            'redirection' => 0
         );
 
         // Ensure response is not an error before extracting option ids and labels
-        $response = wp_remote_get( $api_endpoint, $args );
+        $response = wp_safe_remote_get( $api_endpoint, $args );
         if ( ! is_wp_error( $response ) && ( $response['response']['code'] === 200 ) && isset( $response['body'] ) ) {
             $body = json_decode( $response['body'] );
             if ( is_array( $body ) && count( $body ) > 0 ) {
                 $referrers = [];
                 foreach ( $body as $referrer ) {
                     $referrers[] = (object) [
-                        'id'   => $referrer->id,
-                        'name' => $referrer->name
+                        'id'   => $referrer->id ?? null,
+                        'name' => $referrer->name ?? null
                     ];
                 }
 
@@ -117,7 +134,8 @@ class Disciple_Tools_Echo_API {
         // Build paginated conversations api endpoint request
         $api_endpoint = 'https://' . self::get_api_host() . 'report/conversations/paginated_conversations.json';
         $args         = array(
-            'headers' => self::get_api_headers(),
+            'headers'     => self::get_api_headers(),
+            'redirection' => 0,
             'timeout' => 30, // 30 secs
             'body'    => array(
                 'startDate' => ( $start_secs * 1000 ), // Convert to milliseconds since epoch
@@ -128,7 +146,7 @@ class Disciple_Tools_Echo_API {
         );
 
         // Ensure response is not an error before extracting data
-        $response = wp_remote_get( $api_endpoint, $args );
+        $response = wp_safe_remote_get( $api_endpoint, $args );
 
         if ( ! is_wp_error( $response ) && ( $response['response']['code'] === 200 ) && isset( $response['body'] ) ) {
             $body = json_decode( $response['body'] );
@@ -136,21 +154,21 @@ class Disciple_Tools_Echo_API {
                 $convos = [];
                 foreach ( $body->dataset as $convo ) {
                     $convos[] = (object) [
-                        'id'             => $convo->id,
-                        'chat_id'        => $convo->chat_id,
-                        'client_id'      => $convo->client_id,
-                        'client_contact' => $convo->client_contact,
-                        'type'           => $convo->type,
-                        'name'           => $convo->name,
-                        'user'           => $convo->user,
-                        'created_at'     => $convo->created_at,
-                        'closed_at'      => $convo->closed_at,
-                        'expiration'     => $convo->expiration,
-                        'referrer'       => $convo->referrer,
-                        'outcome'        => $convo->outcome,
-                        'status'         => $convo->status,
-                        'link'           => $convo->link,
-                        'pdf'            => $convo->pdf
+                        'id'             => $convo->id ?? null,
+                        'chat_id'        => $convo->chat_id ?? null,
+                        'client_id'      => $convo->client_id ?? null,
+                        'client_contact' => $convo->client_contact ?? null,
+                        'type'           => $convo->type ?? null,
+                        'name'           => $convo->name ?? null,
+                        'user'           => $convo->user ?? null,
+                        'created_at'     => $convo->created_at ?? null,
+                        'closed_at'      => $convo->closed_at ?? null,
+                        'expiration'     => $convo->expiration ?? null,
+                        'referrer'       => $convo->referrer ?? null,
+                        'outcome'        => $convo->outcome ?? null,
+                        'status'         => $convo->status ?? null,
+                        'link'           => $convo->link ?? null,
+                        'pdf'            => $convo->pdf ?? null
                     ];
                 }
 
@@ -169,7 +187,8 @@ class Disciple_Tools_Echo_API {
         // Build fetch conversation api endpoint request
         $api_endpoint = 'https://' . self::get_api_host() . 'api/conversations/' . $convo_id;
         $args         = array(
-            'headers' => self::get_api_headers(),
+            'headers'     => self::get_api_headers(),
+            'redirection' => 0,
             'timeout' => 30, // 30 secs
             'body'    => array(
                 'eager' => '1', // Include everything
@@ -177,7 +196,7 @@ class Disciple_Tools_Echo_API {
         );
 
         // Ensure response is not an error before extracting data
-        $response = wp_remote_get( $api_endpoint, $args );
+        $response = wp_safe_remote_get( $api_endpoint, $args );
 
         if ( ! is_wp_error( $response ) && ( $response['response']['code'] === 200 ) && isset( $response['body'] ) ) {
             $body = json_decode( $response['body'] );
@@ -186,10 +205,10 @@ class Disciple_Tools_Echo_API {
                 $messages = [];
                 foreach ( $body->messages as $message ) {
                     $messages[] = (object) [
-                        'id'              => $message->id,
-                        'name'            => $message->name,
-                        'body'            => $message->body,
-                        'created_at_secs' => $message->created_at_seconds
+                        'id'              => $message->id ?? null,
+                        'name'            => $message->name ?? null,
+                        'body'            => $message->body ?? null,
+                        'created_at_secs' => $message->created_at_seconds ?? null
                     ];
                 }
 
@@ -197,18 +216,18 @@ class Disciple_Tools_Echo_API {
                 $convo = $body->conversation;
 
                 return (object) [
-                    'id'            => $convo->id,
-                    'uuid'          => $convo->uuid,
-                    'name'          => $convo->name,
-                    'topic'         => $convo->topic,
-                    'type'          => $convo->type,
-                    'status'        => $convo->status,
-                    'user_id'       => $convo->user->id,
-                    'user_name'     => $convo->user->name,
-                    'client_id'     => $convo->client->id,
-                    'client_name'   => $convo->client->name,
-                    'referrer_id'   => $convo->referrer->id,
-                    'referrer_name' => $convo->referrer->name,
+                    'id'            => $convo->id ?? null,
+                    'uuid'          => $convo->uuid ?? null,
+                    'name'          => $convo->name ?? null,
+                    'topic'         => $convo->topic ?? null,
+                    'type'          => $convo->type ?? null,
+                    'status'        => $convo->status ?? null,
+                    'user_id'       => $convo->user->id ?? null,
+                    'user_name'     => $convo->user->name ?? null,
+                    'client_id'     => $convo->client->id ?? null,
+                    'client_name'   => $convo->client->name ?? null,
+                    'referrer_id'   => $convo->referrer->id ?? null,
+                    'referrer_name' => $convo->referrer->name ?? null,
                     'messages'      => $messages
                 ];
             }
@@ -225,14 +244,15 @@ class Disciple_Tools_Echo_API {
         // Build update conversation api endpoint request
         $api_endpoint = 'https://' . self::get_api_host() . 'api/conversations/' . $convo_id . '/disposition';
         $args         = array(
-            'headers' => self::get_api_headers(),
+            'headers'     => self::get_api_headers(),
+            'redirection' => 0,
             'timeout' => 30, // 30 secs
             'method'  => 'PUT',
             'body'    => '{ "disposition": { "outcome_id": ' . $outome_id . ' } }'
         );
 
         // Request and response
-        $response = wp_remote_request( $api_endpoint, $args );
+        $response = wp_safe_remote_request( $api_endpoint, $args );
 
         // Ensure response is not an error
         return ( ! is_wp_error( $response ) && ( $response['response']['code'] === 200 ) );
