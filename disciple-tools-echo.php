@@ -118,7 +118,10 @@ class Disciple_Tools_Echo {
      * @access public
      */
     public static function activation() {
-        // add elements here that need to fire on activation
+        // Resume the sync schedule cleared on deactivation, when Echo is already set up
+        if ( ! empty( get_option( 'dt_echo_api_token' ) ) && ! empty( get_option( 'dt_echo_api_host' ) ) && ! wp_next_scheduled( 'dt_echo_sync' ) ) {
+            wp_schedule_event( time(), '5min', 'dt_echo_sync' );
+        }
     }
 
     /**
@@ -131,6 +134,7 @@ class Disciple_Tools_Echo {
     public static function deactivation() {
         // add functions here that need to happen on deactivation
         delete_option( 'dismissed-disciple-tools-echo' );
+        wp_clear_scheduled_hook( 'dt_echo_sync' );
     }
 
     /**

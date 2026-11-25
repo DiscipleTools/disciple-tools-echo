@@ -158,7 +158,11 @@ class Disciple_Tools_Echo_Tab_General {
             update_option( 'dt_echo_fetch_echo_sync', isset( $_POST['echo_main_col_connect_echo_fetch_sync_feed'] ) ? 1 : 0 );
             update_option( 'dt_echo_push_dt_sync', isset( $_POST['echo_main_col_connect_dt_push_sync_feed'] ) ? 1 : 0 );
 
-            update_option( 'dt_echo_api_token', isset( $_POST['echo_main_col_connect_echo_api_token'] ) ? sanitize_text_field( wp_unslash( $_POST['echo_main_col_connect_echo_api_token'] ) ) : '' );
+            // The saved token is never sent to the page, so an empty field keeps it
+            $echo_api_token = isset( $_POST['echo_main_col_connect_echo_api_token'] ) ? sanitize_text_field( wp_unslash( $_POST['echo_main_col_connect_echo_api_token'] ) ) : '';
+            if ( ! empty( $echo_api_token ) ) {
+                update_option( 'dt_echo_api_token', $echo_api_token );
+            }
 
             $echo_api_host = '';
             if ( isset( $_POST['echo_main_col_connect_echo_api_host'] ) ) {
@@ -463,7 +467,7 @@ class Disciple_Tools_Echo_Tab_General {
                     <td>
                         <input type="password" style="min-width: 100%;" id="echo_main_col_connect_echo_api_token"
                                name="echo_main_col_connect_echo_api_token"
-                               value="<?php echo esc_attr( $this->fetch_echo_api_token() ) ?>"/><br>
+                               value="" data-token-saved="<?php echo esc_attr( ! empty( $this->fetch_echo_api_token() ) ? '1' : '' ) ?>" placeholder="<?php echo esc_attr( ! empty( $this->fetch_echo_api_token() ) ? __( 'Token saved. Enter a new one to replace it.', 'disciple-tools-echo' ) : '' ) ?>"/><br>
                         <input type="checkbox" id="echo_main_col_connect_echo_api_token_show">Show API Token
                     </td>
                 </tr>

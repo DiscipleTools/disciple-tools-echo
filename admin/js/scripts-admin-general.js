@@ -62,7 +62,9 @@ jQuery(function ($) {
     let supported_echo_convo_referrers_table_section = $('#echo_main_col_supported_echo_convo_referrers_table_section');
     let supported_dt_seeker_path_options_table_section = $('#echo_main_col_supported_dt_seeker_path_options_table_section');
 
-    if (!$('#echo_main_col_connect_echo_api_token').val().trim()) {
+    // The saved token is never printed into the page, so also check the saved-token flag.
+    let api_token_ele = $('#echo_main_col_connect_echo_api_token');
+    if (!api_token_ele.val().trim() && !api_token_ele.data('token-saved')) {
       available_echo_convo_options_table_section.fadeOut('fast');
       supported_echo_convo_options_table_section.fadeOut('fast');
       available_echo_convo_referrers_table_section.fadeOut('fast');

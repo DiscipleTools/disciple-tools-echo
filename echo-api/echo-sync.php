@@ -93,7 +93,7 @@ function dt_echo_logging_create( $msg ) {
 }
 
 function dt_echo_logging_update( $logs ) {
-    update_option( 'dt_echo_logging', json_encode( $logs ) );
+    update_option( 'dt_echo_logging', json_encode( $logs ), false );
 }
 
 function dt_echo_logging_add( $log ) {
@@ -250,7 +250,7 @@ function extract_supported_seeker_path_option_by_dt_id( $options, $dt_id ) {
 
 function process_echo_convo( $echo_convo, &$logs ): bool {
 
-    $logs[] = dt_echo_logging_create( 'Processing Echo conversation ID [' . $echo_convo->chat_id . '] with Name [' . $echo_convo->name . '], Outcome [' . $echo_convo->outcome . '] and Referrer [' . $echo_convo->referrer . ']' );
+    $logs[] = dt_echo_logging_create( 'Processing Echo conversation ID [' . $echo_convo->chat_id . '] with Outcome [' . $echo_convo->outcome . '] and Referrer [' . $echo_convo->referrer . ']' );
 
     // As searches are based on name/id associated with incoming conversations, ensure valid entries have been specified
     if ( isset( $echo_convo->name ) && ! empty( $echo_convo->name ) && isset( $echo_convo->chat_id ) && ! empty( $echo_convo->chat_id ) ) {
@@ -272,7 +272,7 @@ function process_echo_convo( $echo_convo, &$logs ): bool {
 
         // No Hits - If we are still unable to locate a matching dt record, then attempt to create one!
         if ( empty( $dt_record ) ) {
-            $logs[]    = dt_echo_logging_create( 'Attempting to create new contacts dt record based on echo convo-name [' . $echo_convo->name . ']' );
+            $logs[]    = dt_echo_logging_create( 'Attempting to create new contacts dt record for echo convo-id [' . $echo_convo->chat_id . ']' );
             $dt_record = handle_no_hits( $echo_convo, $logs );
         }
 
