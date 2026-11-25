@@ -81,8 +81,8 @@ class Disciple_Tools_Echo_API {
                 foreach ( $body->labels as $label ) {
                     if ( is_int( $label->id ) ) { // Int based ids seem to have valid option labels
                         $options[] = (object) [
-                            'id'   => $label->id,
-                            'name' => $label->name
+                            'id'   => $label->id ?? null,
+                            'name' => $label->name ?? null
                         ];
                     }
                 }
@@ -114,8 +114,8 @@ class Disciple_Tools_Echo_API {
                 $referrers = [];
                 foreach ( $body as $referrer ) {
                     $referrers[] = (object) [
-                        'id'   => $referrer->id,
-                        'name' => $referrer->name
+                        'id'   => $referrer->id ?? null,
+                        'name' => $referrer->name ?? null
                     ];
                 }
 
@@ -154,21 +154,21 @@ class Disciple_Tools_Echo_API {
                 $convos = [];
                 foreach ( $body->dataset as $convo ) {
                     $convos[] = (object) [
-                        'id'             => $convo->id,
-                        'chat_id'        => $convo->chat_id,
-                        'client_id'      => $convo->client_id,
-                        'client_contact' => $convo->client_contact,
-                        'type'           => $convo->type,
-                        'name'           => $convo->name,
-                        'user'           => $convo->user,
-                        'created_at'     => $convo->created_at,
-                        'closed_at'      => $convo->closed_at,
-                        'expiration'     => $convo->expiration,
-                        'referrer'       => $convo->referrer,
-                        'outcome'        => $convo->outcome,
-                        'status'         => $convo->status,
-                        'link'           => $convo->link,
-                        'pdf'            => $convo->pdf
+                        'id'             => $convo->id ?? null,
+                        'chat_id'        => $convo->chat_id ?? null,
+                        'client_id'      => $convo->client_id ?? null,
+                        'client_contact' => $convo->client_contact ?? null,
+                        'type'           => $convo->type ?? null,
+                        'name'           => $convo->name ?? null,
+                        'user'           => $convo->user ?? null,
+                        'created_at'     => $convo->created_at ?? null,
+                        'closed_at'      => $convo->closed_at ?? null,
+                        'expiration'     => $convo->expiration ?? null,
+                        'referrer'       => $convo->referrer ?? null,
+                        'outcome'        => $convo->outcome ?? null,
+                        'status'         => $convo->status ?? null,
+                        'link'           => $convo->link ?? null,
+                        'pdf'            => $convo->pdf ?? null
                     ];
                 }
 
@@ -205,10 +205,10 @@ class Disciple_Tools_Echo_API {
                 $messages = [];
                 foreach ( $body->messages as $message ) {
                     $messages[] = (object) [
-                        'id'              => $message->id,
-                        'name'            => $message->name,
-                        'body'            => $message->body,
-                        'created_at_secs' => $message->created_at_seconds
+                        'id'              => $message->id ?? null,
+                        'name'            => $message->name ?? null,
+                        'body'            => $message->body ?? null,
+                        'created_at_secs' => $message->created_at_seconds ?? null
                     ];
                 }
 
@@ -216,18 +216,18 @@ class Disciple_Tools_Echo_API {
                 $convo = $body->conversation;
 
                 return (object) [
-                    'id'            => $convo->id,
-                    'uuid'          => $convo->uuid,
-                    'name'          => $convo->name,
-                    'topic'         => $convo->topic,
-                    'type'          => $convo->type,
-                    'status'        => $convo->status,
-                    'user_id'       => $convo->user->id,
-                    'user_name'     => $convo->user->name,
-                    'client_id'     => $convo->client->id,
-                    'client_name'   => $convo->client->name,
-                    'referrer_id'   => $convo->referrer->id,
-                    'referrer_name' => $convo->referrer->name,
+                    'id'            => $convo->id ?? null,
+                    'uuid'          => $convo->uuid ?? null,
+                    'name'          => $convo->name ?? null,
+                    'topic'         => $convo->topic ?? null,
+                    'type'          => $convo->type ?? null,
+                    'status'        => $convo->status ?? null,
+                    'user_id'       => $convo->user->id ?? null,
+                    'user_name'     => $convo->user->name ?? null,
+                    'client_id'     => $convo->client->id ?? null,
+                    'client_name'   => $convo->client->name ?? null,
+                    'referrer_id'   => $convo->referrer->id ?? null,
+                    'referrer_name' => $convo->referrer->name ?? null,
                     'messages'      => $messages
                 ];
             }

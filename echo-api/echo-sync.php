@@ -63,7 +63,7 @@ function sync_echo_to_dt() {
 
                             }
                         }
-                    } catch ( Exception $exception ) {
+                    } catch ( Throwable $exception ) {
                         $logs[] = dt_echo_logging_create( 'Exception: ' . $exception->getMessage() );
                     }
                 }

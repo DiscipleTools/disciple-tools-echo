@@ -38,7 +38,7 @@ function dt_echo_push_dt_updates( $post_type, $post_id, $initial_fields, $existi
                                     dt_echo_logging_add( 'Unable to update echo conversation [' . $echo_convo_id . '] to new outcome [' . $supported_seeker_path_option->echo_name . ']' );
 
                                 }
-                            } catch ( Exception $exception ) {
+                            } catch ( Throwable $exception ) {
                                 dt_echo_logging_add( 'Exception: ' . $exception->getMessage() );
                             }
                         }
