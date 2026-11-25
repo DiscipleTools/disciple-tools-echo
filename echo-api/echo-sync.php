@@ -399,6 +399,10 @@ function handle_updates( $echo_convo, $dt_record, &$logs ) {
     $fetched_echo_convo         = Disciple_Tools_Echo_API::get_convo_by_id( $echo_convo->chat_id );
     if ( ! empty( $fetched_echo_convo ) && isset( $fetched_echo_convo->messages ) && ! empty( $fetched_echo_convo->messages ) && ( count( $fetched_echo_convo->messages ) > 0 ) ) {
         // Only add messages that have not already been captured
+        // Store chat text as plain text, so markdown images and links don't render in comments
+        foreach ( $fetched_echo_convo->messages as $echo_message ) {
+            $echo_message->body = dt_echo_neutralise_markdown( $echo_message->body ?? '' );
+        }
         $new_echo_messages = dt_record_filter_new_messages( $dt_record, $fetched_echo_convo->messages );
         if ( ! empty( $new_echo_messages ) ) {
             $dt_record_comments_updated = true;
@@ -434,6 +438,11 @@ function handle_updates( $echo_convo, $dt_record, &$logs ) {
     }
 
     return $dt_record;
+}
+
+function dt_echo_neutralise_markdown( $text ): string {
+    // The theme renders [text](url) and ![alt](url) in comments; a space after the bracket stops that
+    return str_replace( '](', '] (', (string) $text );
 }
 
 function dt_record_filter_new_messages( $dt_record, $echo_convo_msgs ): array {
