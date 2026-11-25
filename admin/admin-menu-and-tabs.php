@@ -167,7 +167,13 @@ class Disciple_Tools_Echo_Tab_General {
                     $echo_api_host .= '/';
                 }
             }
-            update_option( 'dt_echo_api_host', $echo_api_host );
+            if ( empty( $echo_api_host ) || Disciple_Tools_Echo_API::is_valid_api_host( $echo_api_host ) ) {
+                update_option( 'dt_echo_api_host', $echo_api_host );
+            } else {
+                ?>
+                <div class="notice notice-error"><p><?php esc_html_e( 'Echo API Host was not saved: enter a public host name, such as example.com/', 'disciple-tools-echo' ) ?></p></div>
+                <?php
+            }
 
             // Request scheduling of cron event
             Disciple_Tools_Echo_API::schedule_cron_event();
