@@ -268,17 +268,6 @@ function process_echo_convo( $echo_convo, &$logs ): bool {
         } elseif ( ! empty( $results ) && count( $results ) > 1 ) { // - Multiple Hits
             $logs[]    = dt_echo_logging_create( 'Multiple [' . count( $results ) . '] contacts dt record hits detected!' );
             $dt_record = handle_multiples( $results, $echo_convo, $logs );
-
-        } else {
-            // If no id based hits, then attempt to search by convo name
-            $logs[]  = dt_echo_logging_create( 'Searching for linked dt records based on echo convo-name [' . $echo_convo->name . ']' );
-            $results = dt_records_search_by_convo_name( $echo_convo->name );
-
-            // Only select if we have a single hit; so as to avoid updating the wrong dt record with the same name!
-            if ( ! empty( $results ) && count( $results ) === 1 ) { // Single Hit
-                $logs[]    = dt_echo_logging_create( 'Single contacts dt record [' . $results[0]->ID . '] hit detected!' );
-                $dt_record = handle_singles( $results[0]->ID, $logs );
-            }
         }
 
         // No Hits - If we are still unable to locate a matching dt record, then attempt to create one!
@@ -313,19 +302,6 @@ function dt_records_search_by_convo_id( $convo_id ): array {
     AND (meta.meta_key = 'dt_echo_convo_ids')
     AND (meta.meta_value = %s)
     GROUP BY post.ID", $convo_id ) );
-}
-
-function dt_records_search_by_convo_name( $name ): array {
-    global $wpdb;
-
-    return $wpdb->get_results( $wpdb->prepare( "
-    SELECT post.ID
-    FROM $wpdb->posts post
-    LEFT JOIN $wpdb->postmeta meta ON (post.ID = meta.post_id)
-    WHERE (post.post_type = 'contacts')
-    AND (LOWER(TRIM(post.post_title)) = %s)
-    AND (meta.meta_key = 'dt_echo_convo_ids')
-    GROUP BY post.ID", strtolower( trim( $name ) ) ) );
 }
 
 function handle_singles( $post_id, &$logs ) {
@@ -422,11 +398,12 @@ function handle_updates( $echo_convo, $dt_record, &$logs ) {
     $dt_record_comments_updated = false;
     $fetched_echo_convo         = Disciple_Tools_Echo_API::get_convo_by_id( $echo_convo->chat_id );
     if ( ! empty( $fetched_echo_convo ) && isset( $fetched_echo_convo->messages ) && ! empty( $fetched_echo_convo->messages ) && ( count( $fetched_echo_convo->messages ) > 0 ) ) {
-        // Ensure incoming messages have not already been captured
-        if ( ! dt_record_already_contains_messages( $dt_record, $fetched_echo_convo->messages ) ) {
+        // Only add messages that have not already been captured
+        $new_echo_messages = dt_record_filter_new_messages( $dt_record, $fetched_echo_convo->messages );
+        if ( ! empty( $new_echo_messages ) ) {
             $dt_record_comments_updated = true;
             // Iterate through messages and create corresponding dt comment accordingly
-            foreach ( $fetched_echo_convo->messages as $echo_message ) {
+            foreach ( $new_echo_messages as $echo_message ) {
                 DT_Posts::add_post_comment( $dt_record['post_type'], $dt_record['ID'], ! empty( $echo_message->body ) ? $echo_message->body : '', "comment", [
                     "user_id"        => 0,
                     "comment_author" => $echo_message->name,
@@ -459,21 +436,26 @@ function handle_updates( $echo_convo, $dt_record, &$logs ) {
     return $dt_record;
 }
 
-function dt_record_already_contains_messages( $dt_record, $echo_convo_msgs ): bool {
+function dt_record_filter_new_messages( $dt_record, $echo_convo_msgs ): array {
     // First, fetch associated dt record comments
     $dt_record_comments = DT_Posts::get_post_comments( $dt_record['post_type'], $dt_record['ID'], false );
 
-    // If we have a single hit, then it is assumed messages have already been previously set, so no need to duplicate!
+    $existing = [];
     if ( ! empty( $dt_record_comments ) && ! is_wp_error( $dt_record_comments ) ) {
         foreach ( $dt_record_comments['comments'] as $dt_comment ) {
-            foreach ( $echo_convo_msgs as $echo_message ) {
-                if ( ! empty( $dt_comment['comment_content'] ) && ! empty( $echo_message->body ) &&
-                     strtolower( trim( $dt_comment['comment_content'] ) ) === strtolower( trim( $echo_message->body ) ) ) {
-                    return true;
-                }
+            if ( ! empty( $dt_comment['comment_content'] ) ) {
+                $existing[ strtolower( trim( $dt_comment['comment_content'] ) ) ] = true;
             }
         }
     }
 
-    return false;
+    // Keep only messages whose text is not already on the record
+    $new_msgs = [];
+    foreach ( $echo_convo_msgs as $echo_message ) {
+        if ( ! empty( $echo_message->body ) && ! isset( $existing[ strtolower( trim( $echo_message->body ) ) ] ) ) {
+            $new_msgs[] = $echo_message;
+        }
+    }
+
+    return $new_msgs;
 }
